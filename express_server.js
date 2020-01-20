@@ -1,8 +1,14 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs');
+
+function generateRandomString() {
+  return Math.random().toString(36).substring(7);
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -24,13 +30,29 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
-})
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: "http://www.lighthouselabs.ca" };
   res.render("urls_show", templateVars);
-})
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  randomURL = generateRandomString();
+  urlDatabase.randomURL = req.body.longURL;
+  res.redirect(`/urls/:${randomURL}`);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase.randomURL;
+  res.redirect(longURL);
+});
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`)
+  console.log(`Example app listening on port ${PORT}!`);
 });
