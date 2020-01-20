@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/fredbordel/tinyapp/issues"
   },
-  "homepage": "https://github.com/fredbordel/tinyapp#readme"
+  "homepage": "https://github.com/fredbordel/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
