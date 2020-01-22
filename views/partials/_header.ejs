@@ -12,7 +12,7 @@
     </div>
       <% if(username){ %>
         <label for="newUser">Logged in as: <%= username %> </label>
-      <% } else{ %>  
+      <% } else { %>  
         <form method="POST" action="/login">
         <label for="newUser">Username</label><input id="newUser" name="username" type="text">
         <input type="submit" value="LOGIN"></form>
