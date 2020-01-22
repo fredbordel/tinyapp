@@ -12,6 +12,8 @@
     </div>
       <% if(username){ %>
         <label for="newUser">Logged in as: <%= username %> </label>
+        <form method="POST" action="/logout">
+        <input type="submit" value="LOGOUT"></form>
       <% } else { %>  
         <form method="POST" action="/login">
         <label for="newUser">Username</label><input id="newUser" name="username" type="text">
