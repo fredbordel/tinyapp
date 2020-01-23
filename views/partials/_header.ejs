@@ -11,12 +11,14 @@
       </div>
     </div>
     <% if(email){ %>
-      <label for="newUser">Logged in as: <%= email %> </label>
-      <form method="POST" action="/logout"></form>
+      <label for="email">Logged in as: <%= email %> </label>
+      <form method="POST" action="/logout">
       <input type="submit" value="LOGOUT"></form>
     <% } else { %>  
-      <form method="POST" action="/login">
-      <input type="submit" value="LOGIN"></form>
+      <form action="http://localhost:8080/urls/login">
+      <input type="submit" value="LOGIN"> </form>
+      <form action="http://localhost:8080/urls/register">
+        <input type="submit" value="REGISTER"> </form>
     <% } %>
   </nav>
 </header>

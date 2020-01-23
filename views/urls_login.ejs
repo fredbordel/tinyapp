@@ -10,7 +10,8 @@
   <%- include('partials/_header.ejs') %>
   <h2> LOGIN </h2>
   <% if(email) { %>
-  <input type="submit" value="Logout">
+    <form method="POST" action="/logout">
+      <input type="submit" value="LOGOUT"></form>
   <% } else {%>
   <form method="POST" action="/urls/login">
 
