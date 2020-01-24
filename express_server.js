@@ -7,6 +7,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
@@ -28,12 +29,14 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purple-monkey-dinosaur",
+    hashedPassword: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "dishwasher-funk",
+    hashedPassword: bcrypt.hashSync("dishwasher-funk", 10)
   }
 };
 
@@ -68,6 +71,7 @@ app.get("/urls/register", (req, res) => {
 app.post("/urls/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   let existingUser;
 
@@ -95,11 +99,13 @@ app.post("/urls/register", (req, res) => {
     let newUser = {
       id: randomUserID,
       email: email,
-      password: password
+      password: password,
+      hashedPassword: hashedPassword
     };
     users[newUser.id] = newUser;
     res.cookie("user_id", randomUserID);
     res.redirect("/urls");
+    console.log(newUser);
   }
 });
 
@@ -114,9 +120,10 @@ app.get("/urls/login", (req, res) => {
 });
 
 app.post("/urls/login", (req, res) => {
-  for (const userMail in users) {
-    if (users[userMail].email === req.body.email && users[userMail].password === req.body.password) {
-      res.cookie("user_id", userMail);
+  for (const id in users) {
+    const user = users[id];
+    if (user.email === req.body.email && bcrypt.compareSync(req.body.password, user.hashedPassword)) {
+      res.cookie("user_id", id);
       res.redirect("/urls");
     }
   }
@@ -150,7 +157,6 @@ app.get("/urls", (req, res) => {
     urls: urlsForUserID,
     email: userID ? users[userID].email : null
   };
-  console.log(urlsForUserID);
   res.render("urls_index", templateVars);
 });
 
