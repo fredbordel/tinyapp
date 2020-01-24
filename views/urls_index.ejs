@@ -11,17 +11,17 @@
 <body>
   <%- include('partials/_header.ejs') %>
   <main style="margin: 1em;">
-    <h3>My URLs</h3>
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Short URL</th>
-          <th scope="col">Long URL</th>
-          <th scope="col">Delete</th>
-        </tr>
-      </thead>
-      <tbody>
         <% if(email) { %>
+          <h3>My URLs</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Short URL</th>
+                <th scope="col">Long URL</th>
+                <th scope="col">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
           <% for(let url in urls) { %>
             <tr>
               <td><%= url %></td>
@@ -33,9 +33,10 @@
             </tr>
           <% } %>
         <% } else { %> 
-        <h4> Welcome! If you want to shorten a link, <a href = "/urls/login">log in</a> . Of course, if it's your firs time here,
+          <h3>Welcome to TinyApp!</h3>  
+        <p style = "font-family:arial "> If you want to shorten a link, <a href = "/urls/login">log in</a> . Of course, if it's your first time here,
           you should consider <a href = "/urls/register">registering</a>... just a thought!
-        </h4>
+        </p>
         <% } %>
        
       </tbody>

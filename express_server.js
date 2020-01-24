@@ -1,3 +1,4 @@
+//__________
 // REQUIRES|
 //_________|
 
@@ -13,10 +14,6 @@ const generateRandomString = function() {
   return Math.random().toString(36).substring(7);
 };
 
-//const urlsForUser = function(id) {
-//  if (`/urls/:${id}` === userID) {
-//  }
-//};
 
 // ______
 // DATA |
@@ -40,10 +37,9 @@ const users = {
   }
 };
 
-// _______
-// ROUTES|
-// ______|
-
+/// __________
+/// MIDDLEWARE|
+/// __________|
 
 app.use((req, res, next)=> {
   if (req.cookies["user_id"] && users[req.cookies["user_id"]] === undefined) {
@@ -53,6 +49,11 @@ app.use((req, res, next)=> {
   }
   next();
 });
+
+// _______
+// ROUTES|
+// ______|
+
 
 app.get("/urls/register", (req, res) => {
   const userID = req.cookies["user_id"];
@@ -128,8 +129,6 @@ app.post("/urls/login", (req, res) => {
 });
 
 
-
-
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
@@ -180,7 +179,6 @@ app.get("/urls/new", (req, res) => {
 });
 
 
-
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies["user_id"];
   let templateVars = {
@@ -214,25 +212,12 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
-
-
-
-
-
 // ________________________________
 // DON'T KNOW WHAT TO DO WITH THIS|
 // _______________________________|
 
-app.get("/", (req, res) => {
-  res.send('Hello!');
-});
-
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 
