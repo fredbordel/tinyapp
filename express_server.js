@@ -2,23 +2,22 @@
 // REQUIRES|
 //_________|
 
+
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true}));
-app.set('view engine', 'ejs');
-const generateRandomString = function() {
-  return Math.random().toString(36).substring(7);
-};
+const { generateRandomString, getUserByEmail } = require("./helper");
+
 
 
 // ______
 // DATA |
 // _____|
+
+
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
@@ -40,26 +39,43 @@ const users = {
   }
 };
 
+
 /// __________
 /// MIDDLEWARE|
 /// __________|
 
+
+app.use(bodyParser.urlencoded({extended: true}));
+app.set('view engine', 'ejs');
+app.use(cookieSession({
+  name: "session",
+  keys: ["banana", "aragorn", "moria", "soft", "superduper"]
+}));
+
+// Middleware that clear old cookies when restarting the server
 app.use((req, res, next)=> {
-  if (req.cookies["user_id"] && users[req.cookies["user_id"]] === undefined) {
-    res.clearCookie("user_id");
+  if (req.session.user_id && users[req.session.user_id] === undefined) {
+    req.session = null;
     res.redirect("/urls/login");
     return;
   }
   next();
 });
 
+
 // _______
 // ROUTES|
 // ______|
 
 
+// ________________
+// USER MANAGEMENT|
+// _______________|
+
+
+
 app.get("/urls/register", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     email: userID ? users[userID].email : null,
     error: false
@@ -73,22 +89,17 @@ app.post("/urls/register", (req, res) => {
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  let existingUser;
-
-  for (const userMail in users) {
-    if (users[userMail].email === email) {
-      existingUser = users[userMail];
-    }
-  }
+  //Checking registering request from user and validating their identity
+  let existingUser = getUserByEmail(email, users);
   if (existingUser) {
-    const userID = req.cookies["user_id"];
+    const userID = req.session.user_id;
     let templateVars = {
       email: userID ? users[userID].email : null,
       error: "Sorry, you have to be more original with that username. Try another one!"
     };
     res.render("urls_register", templateVars);
   } else if (email === "" || password === "") {
-    const userID = req.cookies["user_id"];
+    const userID = req.session.user_id;
     let templateVars = {
       email: userID ? users[userID].email : null,
       error: "You forgot something here..."
@@ -103,15 +114,14 @@ app.post("/urls/register", (req, res) => {
       hashedPassword: hashedPassword
     };
     users[newUser.id] = newUser;
-    res.cookie("user_id", randomUserID);
+    req.session.user_id = randomUserID;
     res.redirect("/urls");
-    console.log(newUser);
   }
 });
 
 
 app.get("/urls/login", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     email: userID ? users[userID].email : null,
     error: false
@@ -119,15 +129,17 @@ app.get("/urls/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
+
 app.post("/urls/login", (req, res) => {
   for (const id in users) {
-    const user = users[id];
+    let user = users[id];
+    //Checking login request from user and validating their identity
     if (user.email === req.body.email && bcrypt.compareSync(req.body.password, user.hashedPassword)) {
-      res.cookie("user_id", id);
+      req.session.user_id = id;
       res.redirect("/urls");
     }
   }
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     email: userID ? users[userID].email : null,
     error: true
@@ -137,22 +149,20 @@ app.post("/urls/login", (req, res) => {
 
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
 
-
 app.get("/urls", (req, res) => {
-  const currentUserID = req.cookies["user_id"];
-
+  const currentUserID = req.session.user_id;
   let urlsForUserID = {};
   for (let key in urlDatabase) {
     if (currentUserID === urlDatabase[key]['userID']) {
       urlsForUserID[key] = urlDatabase[key];
     }
   }
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     urls: urlsForUserID,
     email: userID ? users[userID].email : null
@@ -166,6 +176,7 @@ app.get("/urls", (req, res) => {
 //_______________|
 
 
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
@@ -173,7 +184,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     email: userID ? users[userID].email : null,
   };
@@ -186,7 +197,7 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userID = req.cookies["user_id"];
+  const userID = req.session.user_id;
   let templateVars = {
     email: userID ? users[userID].email : null,
     shortURL: req.params.shortURL,
@@ -207,7 +218,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = {longURL : req.body.longURL, userID : req.cookies["user_id"]};
+  urlDatabase[randomURL] = {longURL : req.body.longURL, userID : req.session.user_id};
   res.redirect(`/urls/${randomURL}`);
 });
 
@@ -218,18 +229,11 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
-// ________________________________
-// DON'T KNOW WHAT TO DO WITH THIS|
-// _______________________________|
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-
 // _______
 // LISTEN|
 // ______|
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
