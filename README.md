@@ -4,7 +4,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["I LOVE TINYAPP"](#)
+![http://localhost:8080/urls](#)
 
 ## Dependencies
 
